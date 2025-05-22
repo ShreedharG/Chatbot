@@ -1,0 +1,58 @@
+{
+    "intents":[
+      {
+        "tag": "greeting",
+        "patterns": ["Hi", "Hello", "Hey", "Good morning", "Good evening", "Good night","Namaste"],
+        "responses": ["Hello!", "Hi there!", "Greetings!","Namaste"]
+      },
+
+      {
+        "tag": "order_status",
+        "patterns": ["Where is my order?", "Track my order", "Order status","I want to see my order status","Can you check my order status?"],
+        "responses": ["Sure. Please enter your order ID to check the status."]
+      },
+      
+      {
+        "tag": "place_order",
+        "patterns": ["I want to order", "Place a new order", "Can I buy something?"],
+        "responses": ["Sure! I can help you with that. "]
+      },
+
+      {
+        "tag": "make_payment",
+        "patterns": ["How do I pay?", "Payment options", "Make a payment","I want to pay for my order"],
+        "responses": ["Currently I can't process your payment via this chatbot. Please visit our website for payment options."]
+      },
+      
+      {
+        "tag": "payment_issue",
+        "patterns": ["Payment issue", "I can't pay", "Payment error","I am having problems with payment"],
+        "responses": ["Please check your payment method or contact customer support."]
+      },
+      
+      {
+        "tag": "return_policy",
+        "patterns": ["What is your return policy?", "How to return an item?", "Return policy", "Can I return my order?"],
+        "responses": ["We don't offer return servies on any order. However, you can replace your order. Contact customer support for more details."]
+      },
+      
+      {
+        "tag": "cancel_order",
+        "patterns": ["I want to cancel my order", "Cancel my order", "How to cancel an order?"],
+        "responses": ["This is beyond the scope of this chatbot. Please visit our website for cancellation requests."]
+      },
+      
+      {
+        "tag": "thank_you",
+        "patterns": ["Thank you", "Thanks for your help", "I appreciate it","Thanks a lot"],
+        "responses": ["You're welcome! If you have any more questions, feel free to ask."]
+      },
+
+      {
+        "tag": "contact_support",
+        "patterns": ["Contact support", "Customer service", "Help center", "Need assistance"],
+        "responses": ["You can reach our customer support at +91-1234567890 or email us at ABC@dangit.com."]
+      }
+    ]
+    }
+  

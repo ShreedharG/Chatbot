@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="menu-container">
+            <h2>Menu</h2>
+            <table id="menu-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Item</th>
+                        <th>Price (₹)</th>
+                    </tr>
+                </thead>
+                <tbody id="menu-list"></tbody>
+            </table>
+            <button onclick="loadMenu()">Load Menu</button>
+        </div>
+    
+        <div class="chat-container">
+            <div id="chat-box"></div>
+            <input type="text" id="user-input" placeholder="Type a message..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <div id="order-popup" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Place Your Order</h3>
+            <label>Item:</label>
+            <select id="order-item">
+                <option value="">Select an item</option>
+            </select><br><br>
+            <label>Quantity:</label>
+            <select id="order-quantity">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select><br><br>
+            <button onclick="submitOrder()">OK</button>
+            <button onclick="document.getElementById('order-popup').style.display='none'">Cancel</button>
+        </div>
+    </div>
+
+    <div id="order-status-popup" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Check Order Status</h3>
+            <label>Enter Order ID:</label>
+            <input type="text" id="order-id-input" placeholder="e.g., ORD123456" /><br><br>
+            <button onclick="submitOrderStatus()">Check</button>
+            <button onclick="document.getElementById('order-status-popup').style.display='none'">Cancel</button>
+        </div>
+    </div>
+
+    <div style="height: 100vh;"></div>
+    
+    <script>
+        window.onload = function() {
+            const chatBox = document.getElementById("chat-box");
+            const welcomeMsg = "{{ welcome_msg }}";  
+            if (chatBox && welcomeMsg) {
+                chatBox.innerHTML += `<div class="message-box bot-message"><strong>Bot:</strong> ${welcomeMsg}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        };
+
+        async function sendMessage() {
+            const userInput = document.getElementById("user-input");
+            const chatBox = document.getElementById("chat-box");
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            chatBox.innerHTML += `<div class="message-box user-message"><strong>You:</strong> ${message}</div>`;
+            userInput.value = "";
+
+            const response = await fetch("/get", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ message })
+            });
+
+            const data = await response.json();
+
+            if (data.trigger_order_popup) {
+                document.getElementById("order-popup").style.display = "block";
+                loadOrderDropdown();
+            }
+            else if(data.trigger_order_status_popup)
+                document.getElementById("order-status-popup").style.display = "block";
+            
+            else {
+                chatBox.innerHTML += `<div class="message-box bot-message"><strong>Bot:</strong> ${data.reply}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        async function submitOrder() {
+            const item = document.getElementById("order-item").value;
+            const quantity = document.getElementById("order-quantity").value;
+            const response = await fetch("/place_order", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ item, quantity })
+            });
+
+            const data = await response.json();
+            if (data.error) 
+                alert(data.error);
+            else {
+                const msg = `
+                    Order placed successfully!<br>
+                    <strong>Order ID:</strong> ${data.order_id}<br>
+                    <strong>Item:</strong> ${data.item}<br>
+                    <strong>Quantity:</strong> ${data.quantity}<br>
+                    <strong>Total Price:</strong> ₹${data.price}<br>
+                    <strong>*Kindly remember your unique order ID for related services!</strong><br>
+                `;
+                document.getElementById("chat-box").innerHTML += `<div class="message-box bot-message">${msg}</div>`;
+                document.getElementById("chat-box").scrollTop = document.getElementById("chat-box").scrollHeight;
+                document.getElementById("order-popup").style.display = "none";
+            }
+        }
+
+        async function loadOrderDropdown() {
+            const response = await fetch("/menu");
+            const menuData = await response.json();
+
+            const itemDropdown = document.getElementById("order-item");
+            itemDropdown.innerHTML = "";  // Clear previous options
+
+            for (const id in menuData) {
+                const item = menuData[id];
+                const option = document.createElement("option");
+                option.value = id;
+                option.text = `${item.item} (₹${item.price})`;
+                itemDropdown.appendChild(option);
+            }
+        }
+
+        async function submitOrderStatus() {
+            const orderID = document.getElementById("order-id-input").value;
+
+            const response = await fetch("/order_status", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ orderID })
+            });
+
+            const chatBox = document.getElementById("chat-box");
+            const data = await response.json();
+            if (data.error) 
+                alert(data.error);
+            else {
+                const msg = `
+                    <div class="message-box bot-message">
+                        <strong>Order Details:</strong><br>
+                        <strong>Order ID:</strong> ${data.order_ID}<br>
+                        <strong>Item:</strong> ${data.item}<br>
+                        <strong>Quantity:</strong> ${data.quantity}<br>
+                        <strong>Total Price:</strong> ₹${data.price}<br>
+                        <strong>Status:</strong> ${data.status}<br>
+                    </div>
+                `;
+                document.getElementById("chat-box").innerHTML += `<div class="message-box bot-message">${msg}</div>`;
+                document.getElementById("chat-box").scrollTop = document.getElementById("chat-box").scrollHeight;
+                document.getElementById("order-status-popup").style.display = "none";
+            }
+        }
+
+        async function loadMenu() {
+            const res = await fetch("/menu");
+            const data = await res.json();
+            const menuList = document.getElementById("menu-list");
+            menuList.innerHTML = "";
+
+            for (const id in data) {
+                const item = data[id];
+                menuList.innerHTML += `
+                    <tr>
+                        <td>${id}</td>
+                        <td>${item.item}</td>
+                        <td>${item.price}</td>
+                    </tr>`;
+            }
+        }
+    </script>
+</body>
+</html>
