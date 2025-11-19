@@ -56,8 +56,7 @@ def fetch_order_ids():
     cursor.execute("SELECT order_ID FROM orders")
     rows = cursor.fetchall()
 
-    for row in rows:
-        order_ids.append(row[0])
+    order_ids = [ row[0] for row in rows ]
         
     cursor.close()
     conn.close()
