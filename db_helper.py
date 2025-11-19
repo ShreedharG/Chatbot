@@ -2,23 +2,26 @@ import mysql.connector
 
 items_dict = {}
 def fetch_menu():
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="2409",
-        database="chatbotDB"
-    )
+    global items_dict
 
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM items")
-    rows = cursor.fetchall()
+    if not items_dict:
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="2409",
+            database="chatbotDB"
+        )
 
-    for row in rows:
-        serial_no, item, price = row
-        items_dict[serial_no] = {"item": item, "price": float(price)}
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM items")
+        rows = cursor.fetchall()
 
-    cursor.close()
-    conn.close()
+        for row in rows:
+            serial_no, item, price = row
+            items_dict[serial_no] = {"item": item, "price": float(price)}
+
+        cursor.close()
+        conn.close()
     return
 
 def insert_order(order_id, item, quantity, price):
